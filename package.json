@@ -1,0 +1,11 @@
+{
+  "name": "dontfuckmyass",
+  "version": "1.0.0",
+  "description": "RESTful API with node/express",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Menel",
+  "license": "ISC"
+}
