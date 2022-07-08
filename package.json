@@ -9,7 +9,8 @@
   "author": "Menel",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.18.1"
+    "express": "^4.18.1",
+    "mysql2": "^2.3.3"
   },
   "devDependencies": {
     "eslint": "^8.19.0"

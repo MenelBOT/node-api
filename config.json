@@ -3,6 +3,8 @@
     "EXPRESSPORT": "",
     "DBURL": "",
     "DBPORT": "",
+    "DBNAME": "",
     "DBUSERNAME": "",
-    "DBPASSWORD": ""
+    "DBPASSWORD": "",
+    "LISTPERPAGE": 0
 }
