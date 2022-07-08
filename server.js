@@ -1,2 +1,12 @@
+/* eslint-disable no-unused-vars */
 const api = require("express")();
-const PORT = 2030;
+const {
+	EXPRESSURL,
+	EXPRESSPORT,
+	DBURL,
+	DBPORT,
+	DBNAME,
+	DBUSERNAME,
+	DBPASSWORD
+} = require("./config.dev.json");
+
