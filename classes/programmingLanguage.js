@@ -20,14 +20,14 @@ class programmingLanguage {
 	/**
 	 * This function tests whether a given object can be used to create an instance of the programmingLanguage class
 	 * @param {object} languageToValidate the object to test
+	 * @returns The instantialized object if it successfully creates, undefined otherwise
 	 */
 	static validate(languageToValidate) {
 		try {
-			// eslint-disable-next-line no-unused-vars
 			const test = new programmingLanguage(languageToValidate);
-			return true;
+			return test;
 		} catch (error) {
-			return false;
+			return undefined;
 		}
 	}
 }

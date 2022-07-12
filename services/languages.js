@@ -1,7 +1,7 @@
 const db = require("./db.js");
 const helper = require("./pagehelper.js");
 const config = require("../config.dev.json");
-
+const Language = require("../classes/programmingLanguage");
 
 /**
  *
@@ -55,11 +55,14 @@ async function create(programmingLanguage) {
 	return { message: "Error in creating programming language" };
 }
 
+/**
+ * @param {Language} programmingLanguage
+ */
 async function update(programmingLanguage) {
 
 	const result = await db.query(`
 		UPDATE programming_languages
-		SET name=${programmingLanguage.name},
+		SET name="${programmingLanguage.name}",
 		released_year=${programmingLanguage.released_year},
 		githut_rank=${programmingLanguage.githut_rank},
 		pypl_rank=${programmingLanguage.pypl_rank},

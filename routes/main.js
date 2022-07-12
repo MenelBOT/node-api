@@ -5,9 +5,7 @@ const router = express.Router();
 
 const languageranking = require("../services/languages.js");
 
-function validateLanguage(programmingLanguage) {
-	return null;
-}
+const Language = require("../classes/programmingLanguage");
 
 function validateBody(requestBody) {
 	console.log("Validating body of latest request");
@@ -92,7 +90,17 @@ router.post("/", async function(request, response) {
 
 router.put("/:languageID", async function(request, response) {
 
+	if (request.body.id != request.params.languageID) return response.status(400).json("Cannot change programming language ID");
 
+	const language = Language.validate(request.body);
+
+	if (language) {
+		// Language successfully validated
+		const result = await languageranking.update(language);
+
+		response.status(200).json({ message: "ok", updated: result });
+
+	} else return response.status(400).json("Given body cannot be resolved to a valid programming language object");
 
 });
 
