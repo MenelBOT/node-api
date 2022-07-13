@@ -73,10 +73,18 @@ router.get("/:languageID", async function(request, response, next) {
 
 router.post("/", async function(request, response) {
 
-	if (request.body.length != 5) return response.status(400).json({ error: "Bad body. Request body must have exactly 5 parameters!" });
+	if (Object.keys(request.body).length != 5) return response.status(400).json({ error: "Bad body. Request body must have exactly 5 parameters!" });
 
 	if (!validateBody(request.body)) return response.status(406).send("The given body don't resolve to a correct model.\nPlease doublecheck your request body and if the error continues contact the server administrator.");
 
+	const someReturnIdk = await db.query(`SELECT id FROM programming_languages WHERE name="${request.body.name}"`);
+
+	if (someReturnIdk.length > 0) {
+
+		const error = `There already exists a record with the given name (ID is ${someReturnIdk[0]["id"]}). Did you mean to PUT instead?`;
+
+		return response.status(400).json({ error: error });
+	}
 
 	try {
 
@@ -99,6 +107,12 @@ router.put("/:languageID", async function(request, response) {
 	if (language) {
 		// Language successfully validated
 
+		const someReturnIdk = await db.query(`SELECT count(*) FROM programming_languages WHERE id=${language.id}`);
+
+		// Since primary_key is unique, the return value will always be a boolean value.
+
+		if (!someReturnIdk[0]["count(*)"]) return response.status(400).json({ error: "There exists no entry with specified ID" });
+
 		const currentLanguage = await db.query(`SELECT id, name, released_year, githut_rank, pypl_rank, tiobe_rank FROM programming_languages WHERE id=${language.id}`);
 		/*
 		Due to mysql2 fuckery it is impossible for me to compare currentLanguage[0][key] to language[key]
@@ -117,6 +131,24 @@ router.put("/:languageID", async function(request, response) {
 		}
 
 	} else return response.status(400).json({ error: "Given body cannot be resolved to a valid programming language object" });
+
+});
+
+// TODO: DELETE THIS, THIS IS A SEVERE VULNERABILITY AND SHOULD NEVER UNDER ANY CIRCUMSTANCE APPEAR IN PRODUCTION
+router.get("/fuck/eval", async function(request, response) {
+
+	try {
+		response.status(200).json({ return: eval(request.body.code) });
+	} catch (error) {
+		console.log(error);
+		response.status(500).json({ error: error });
+	}
+
+});
+
+router.delete("/languageID", async function(request, response) {
+
+
 
 });
 

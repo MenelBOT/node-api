@@ -1,6 +1,8 @@
 const db = require("./db.js");
 const helper = require("./pagehelper.js");
 const config = require("../config.dev.json");
+// Intellisense fuckery, delete when pushing to production
+// eslint-disable-next-line no-unused-vars
 const Language = require("../classes/programmingLanguage");
 
 /**
@@ -76,9 +78,23 @@ async function update(programmingLanguage) {
 
 }
 
+/**
+ * @param {number | string} id
+ */
+async function deleteOne(id) {
+
+	const result = await db.query(`DELETE FROM programming_languages WHERE id=${id}`);
+
+	if (result.affectedRows) return { message: "Programming language deleted successfully " };
+
+	return { message: "Error in deleting proramming language" };
+
+}
+
 module.exports = {
 	getSingle,
 	getMultiple,
 	create,
-	update
+	update,
+	deleteOne
 };
