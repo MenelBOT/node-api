@@ -52,8 +52,10 @@ async function create(programmingLanguage) {
 		(${programmingLanguage.name}, ${programmingLanguage.released_year}, ${programmingLanguage.githut_rank}, ${programmingLanguage.pypl_rank}, ${programmingLanguage.tiobe_rank})`
 	);
 
-	if (result.affectedRows) return { message: "Programming language created successfully" };
-
+	if (result.affectedRows) {
+		if (result.insertId) return { message: "Programming language created successfully", id: result.insertId };
+		else return { message: "Programming language created successfully" };
+	}
 	return { message: "Error in creating programming language" };
 }
 
@@ -85,7 +87,7 @@ async function deleteOne(id) {
 
 	const result = await db.query(`DELETE FROM programming_languages WHERE id=${id}`);
 
-	if (result.affectedRows) return { message: "Programming language deleted successfully " };
+	if (result.affectedRows) return { message: "Programming language deleted successfully" };
 
 	return { message: "Error in deleting proramming language" };
 

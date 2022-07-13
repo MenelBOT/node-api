@@ -1,5 +1,3 @@
-// @ts-check
-
 const express = require("express");
 const router = express.Router();
 
@@ -71,6 +69,14 @@ router.get("/:languageID", async function(request, response, next) {
 
 });
 
+router.use(function(request, response, next) {
+
+	if (!request.headers.authorization) return response.status(403).json({ error: "No credentials provided " });
+
+	next();
+
+});
+
 router.post("/", async function(request, response) {
 
 	if (Object.keys(request.body).length != 5) return response.status(400).json({ error: "Bad body. Request body must have exactly 5 parameters!" });
@@ -88,8 +94,9 @@ router.post("/", async function(request, response) {
 
 	try {
 
+		request.body.name = `"${request.body.name}"`;
 		const result = await languageranking.create(request.body);
-		response.status(200).json({ message: "ok", created: result });
+		result.id ? response.status(200).json({ message: result.message, created: result.id }) : response.status(200).json({ message: "ok" });
 
 	} catch (error) {
 		return response.status(400).json({ message: "Database rejected insert operation.\nMake sure the data you provided is corrent." });
@@ -134,21 +141,24 @@ router.put("/:languageID", async function(request, response) {
 
 });
 
-// TODO: DELETE THIS, THIS IS A SEVERE VULNERABILITY AND SHOULD NEVER UNDER ANY CIRCUMSTANCE APPEAR IN PRODUCTION
-router.get("/fuck/eval", async function(request, response) {
+
+router.delete("/:languageID", async function(request, response, next) {
 
 	try {
-		response.status(200).json({ return: eval(request.body.code) });
+
+		const result = await languageranking.deleteOne(request.params.languageID);
+
+		console.log(result);
+
+		if (result.message == "Programming language deleted successfully") return response.status(200).json({ message: "ok" });
+
+		else return response.status(400).json({ error: "Request affected no rows, make sure the language ID is correct and try again" });
+
 	} catch (error) {
-		console.log(error);
-		response.status(500).json({ error: error });
+
+		next(error);
+
 	}
-
-});
-
-router.delete("/languageID", async function(request, response) {
-
-
 
 });
 
