@@ -7,6 +7,8 @@ const Language = require("../classes/programmingLanguage");
 
 const db = require("../services/db");
 
+const auth = require("../services/authhelper");
+
 function validateBody(requestBody) {
 	console.log("Validating body of latest request");
 	if (
@@ -73,7 +75,9 @@ router.use(function(request, response, next) {
 
 	if (!request.headers.authorization) return response.status(403).json({ error: "No credentials provided " });
 
-	next();
+	if (auth.compareToken(request.headers.authorization)) next();
+
+	else return response.status(403).json({ error: "Token invalid" });
 
 });
 
@@ -147,8 +151,6 @@ router.delete("/:languageID", async function(request, response, next) {
 	try {
 
 		const result = await languageranking.deleteOne(request.params.languageID);
-
-		console.log(result);
 
 		if (result.message == "Programming language deleted successfully") return response.status(200).json({ message: "ok" });
 
