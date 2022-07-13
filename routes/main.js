@@ -3,9 +3,11 @@
 const express = require("express");
 const router = express.Router();
 
-const languageranking = require("../services/languages.js");
+const languageranking = require("../services/languages");
 
 const Language = require("../classes/programmingLanguage");
+
+const db = require("../services/db");
 
 function validateBody(requestBody) {
 	console.log("Validating body of latest request");
@@ -90,17 +92,31 @@ router.post("/", async function(request, response) {
 
 router.put("/:languageID", async function(request, response) {
 
-	if (request.body.id != request.params.languageID) return response.status(400).json("Cannot change programming language ID");
+	if (request.body.id != request.params.languageID) return response.status(400).json({ error: "Cannot change programming language ID" });
 
 	const language = Language.validate(request.body);
 
 	if (language) {
 		// Language successfully validated
-		const result = await languageranking.update(language);
 
-		response.status(200).json({ message: "ok", updated: result });
+		const currentLanguage = await db.query(`SELECT id, name, released_year, githut_rank, pypl_rank, tiobe_rank FROM programming_languages WHERE id=${language.id}`);
+		/*
+		Due to mysql2 fuckery it is impossible for me to compare currentLanguage[0][key] to language[key]
+		yet somehow this works so I will just keep this as a weird workaround until someone figures out a better way
+		to do this
+		*/
+		const whatTheFuck = currentLanguage[0];
 
-	} else return response.status(400).json("Given body cannot be resolved to a valid programming language object");
+		if (Object.keys(language).every((key) => language[key] === whatTheFuck[key])) return response.status(400).json({ error: "No difference detected between currently stored entry and request entry" });
+
+		else {
+			const result = await languageranking.update(language);
+
+			result.message == "Programming language updated successfully" ? response.status(200).json({ message: result.message, updated: language }) : response.status(400).json({ error: result });
+
+		}
+
+	} else return response.status(400).json({ error: "Given body cannot be resolved to a valid programming language object" });
 
 });
 
