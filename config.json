@@ -6,5 +6,9 @@
     "DBNAME": "",
     "DBUSERNAME": "",
     "DBPASSWORD": "",
-    "LISTPERPAGE": 0
+    "LISTPERPAGE": 0,
+	"PRIVATEKEY": "",
+	"PERMISSIONNAMES": {
+		"CREATEUSER": ""
+	}
 }

@@ -9,8 +9,13 @@ const {
 	DBPORT,
 	DBNAME,
 	DBUSERNAME,
-	DBPASSWORD
+	DBPASSWORD,
+	PERMISSIONNAMES
 } = require("./config.dev.json");
+const jwt = require("jsonwebtoken");
+const db = require("./services/db");
+const registerModel = require("./models/registerRequest");
+const users = require("./services/users");
 
 let { EXPRESSURL } = require("./config.dev.json");
 
@@ -42,6 +47,63 @@ api.get("/", (request, response, next) => {
 });
 
 api.use("/programming-languages", programmingLanguagesRouter);
+
+
+api.post("/register", async function(request, response, next) {
+
+	// Checking if current token was provided in Auth header
+	const currentToken = request.header("Authorization");
+	if (currentToken === undefined || currentToken === null) return response.status(401).json({ error: "Unauthorized" });
+
+	// Checking if provided token has authorization to create new users
+
+	// result should look like [ { permissions: '{ "permissions": [This array will hold the permissions] }' } ]
+	const presult = await db.query(`SELECT permissions FROM users WHERE token="${currentToken}"`);
+	/*
+	 Permissions should look like { permissions: [This array will hold the permissions] }.
+	 Yes this means that you need to call permissions["permissions"] to actually access the array.
+	 You can thank MySQL for that as it straight up doesn't have an Array datatype.
+	*/
+	const permissions = JSON.parse(presult[0]["permissions"]);
+
+	if (!permissions["permissions"].includes(PERMISSIONNAMES.CREATEUSER)) return response.status(403).json({ error: "Forbidden" });
+
+	// Get data from request body
+	const { username, email, password } = request.body;
+
+	registerModel.setData({ username: username, email: email, password: password });
+
+	if (registerModel.validate()) {
+		// Data has been validated
+
+		// Check if user already exists
+		const exists = await db.query(`SELECT username, email FROM users WHERE (username="${username}" AND email="${email}") OR (username="${username}" OR email="${email}")`);
+
+		const errors = [];
+
+		for (const object of exists) {
+			if (object.username == username) errors.push("There already exists an user with that username");
+			if (object.email == email) errors.push("There already exists an user with that email address");
+		}
+
+		if (errors.length == 0) {
+
+			const data = {};
+
+			const result = await users.createOne(username, email, password);
+
+			if (Object.prototype.hasOwnProperty.call(result, "error")) return response.status(500).json({ error: "The server has experienced an unknown error\nPlease contact the server adminstrator!" });
+
+			return response.status(200).json(result);
+
+		}
+	} else return response.status(400).json({ errors: registerModel.errors().all() });
+
+});
+
+api.post("/login", async function(request, response, next) {
+
+});
 
 api.use((err, req, res, next) => {
 	const statusCode = err.statusCode || 500;
