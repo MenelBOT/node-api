@@ -69,14 +69,6 @@ router.get("/:languageID", async function(request, response, next) {
 
 });
 
-router.use(function(request, response, next) {
-
-	if (!request.headers.authorization) return response.status(403).json({ error: "No credentials provided " });
-
-	next();
-
-});
-
 router.post("/", async function(request, response) {
 
 	if (Object.keys(request.body).length != 5) return response.status(400).json({ error: "Bad body. Request body must have exactly 5 parameters!" });
@@ -147,8 +139,6 @@ router.delete("/:languageID", async function(request, response, next) {
 	try {
 
 		const result = await languageranking.deleteOne(request.params.languageID);
-
-		console.log(result);
 
 		if (result.message == "Programming language deleted successfully") return response.status(200).json({ message: "ok" });
 
