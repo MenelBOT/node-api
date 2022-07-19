@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const jwt = require("jsonwebtoken");
+const config = require("../config.dev.json");
 
 const languageranking = require("../services/languages");
 
@@ -8,7 +10,6 @@ const Language = require("../classes/programmingLanguage");
 const db = require("../services/db");
 
 function validateBody(requestBody) {
-	console.log("Validating body of latest request");
 	if (
 		Object.prototype.hasOwnProperty.call(requestBody, "name")
 		&& Object.prototype.hasOwnProperty.call(requestBody, "released_year")
@@ -69,13 +70,34 @@ router.get("/:languageID", async function(request, response, next) {
 
 });
 
+router.use((request, response, next) => {
+	const token = request.header("x-access-token") || request.header("authentication");
+
+	if (!token) return response.status(403).json({ error: "Forbidden\nThe requested resource requires an access token" });
+
+	// jwt throws an error if verify fails for some reason
+	try {
+
+		jwt.verify(token, config.PRIVATEKEY);
+		request.authorized = true;
+		next();
+
+	} catch (error) {
+
+		console.error(error);
+		return response.status(403).json({ error: "Forbidden\nThe provided token is invalid" });
+
+	}
+
+});
+
 router.post("/", async function(request, response) {
 
 	if (Object.keys(request.body).length != 5) return response.status(400).json({ error: "Bad body. Request body must have exactly 5 parameters!" });
 
 	if (!validateBody(request.body)) return response.status(406).send("The given body don't resolve to a correct model.\nPlease doublecheck your request body and if the error continues contact the server administrator.");
 
-	const someReturnIdk = await db.query(`SELECT id FROM programming_languages WHERE name="${request.body.name}"`);
+	const someReturnIdk = await db.query("SELECT id FROM programming_languages WHERE name = ?", [request.body.name]);
 
 	if (someReturnIdk.length > 0) {
 

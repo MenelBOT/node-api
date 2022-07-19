@@ -7,6 +7,8 @@ async function query(sql, parameters) {
 
 	const [results] = await connection.execute(sql, parameters);
 
+	connection.end();
+
 	return results;
 
 }

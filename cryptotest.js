@@ -1,3 +1,4 @@
+const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const prompt = require("prompt-sync")({ sigint:true });
 let bytes;
@@ -20,3 +21,11 @@ while (!pass) {
 }
 
 console.log(crypto.randomBytes(bytes).toString(encoding));
+
+bcrypt.hash("LikePonies123!@#", 10).then(hash => {
+	console.log(hash);
+}).catch(error => {
+	console.error(error);
+}).finally(() => {
+	console.log("ok am done");
+});
