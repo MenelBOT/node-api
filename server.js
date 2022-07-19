@@ -52,51 +52,62 @@ api.use("/programming-languages", programmingLanguagesRouter);
 api.post("/register", async function(request, response, next) {
 
 	// Checking if current token was provided in Auth header
+	console.log("Checking token");
 	const currentToken = request.header("Authorization");
 	if (currentToken === undefined || currentToken === null) return response.status(401).json({ error: "Unauthorized" });
+	console.log("Token found");
 
 	// Checking if provided token has authorization to create new users
 
 	// result should look like [ { permissions: '{ "permissions": [This array will hold the permissions] }' } ]
+	console.log("Fetching user by token");
 	const presult = await db.query(`SELECT permissions FROM users WHERE token="${currentToken}"`);
+	console.log("Done");
 	/*
 	 Permissions should look like { permissions: [This array will hold the permissions] }.
 	 Yes this means that you need to call permissions["permissions"] to actually access the array.
 	 You can thank MySQL for that as it straight up doesn't have an Array datatype.
 	*/
 	const permissions = JSON.parse(presult[0]["permissions"]);
+	console.log("Parsing result");
 
 	if (!permissions["permissions"].includes(PERMISSIONNAMES.CREATEUSER)) return response.status(403).json({ error: "Forbidden" });
+	console.log("User authorized");
 
 	// Get data from request body
+	console.log("Parsing user input");
 	const { username, email, password } = request.body;
 
 	registerModel.setData({ username: username, email: email, password: password });
 
+	console.log("Validating. . .");
 	if (registerModel.validate()) {
 		// Data has been validated
+		console.log("Validated!\nChecking if input matches existing entry");
 
 		// Check if user already exists
 		const exists = await db.query(`SELECT username, email FROM users WHERE (username="${username}" AND email="${email}") OR (username="${username}" OR email="${email}")`);
-
+		console.log("Database queried");
 		const errors = [];
 
 		for (const object of exists) {
 			if (object.username == username) errors.push("There already exists an user with that username");
 			if (object.email == email) errors.push("There already exists an user with that email address");
+			console.log("Iterated");
 		}
-
+		console.log("Checking if any errors raised");
 		if (errors.length == 0) {
-
-			const data = {};
+			console.log("No errors found\nAttempting to create new database entry");
 
 			const result = await users.createOne(username, email, password);
 
-			if (Object.prototype.hasOwnProperty.call(result, "error")) return response.status(500).json({ error: "The server has experienced an unknown error\nPlease contact the server adminstrator!" });
+			console.log("Checking if any error occured");
 
+			if ("error" in result) return response.status(500).json({ error: "The server has experienced an unknown error\nPlease contact the server adminstrator!" });
+			console.log("No error detected");
 			return response.status(200).json(result);
 
-		}
+		} else return response.status(400).json({ errors });
 	} else return response.status(400).json({ errors: registerModel.errors().all() });
 
 });
