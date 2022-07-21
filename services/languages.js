@@ -19,7 +19,7 @@ async function getSingle(id) {
 		data: result
 	};
 
-	(result.length == 0) ? returnval["meta"] = { error: "Specified ID doesn't exist in database!" } : returnval["meta"] = { id: id };
+	(result.length == 0) ? returnval["meta"] = { error: "Specified ID doesn't exist in database!" } : returnval["meta"] = { id: Number(id) };
 
 	return returnval;
 }

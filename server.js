@@ -398,6 +398,22 @@ api.post("/register", async function(request, response, next) {
  *                   default: Body must be two parameters
  *       422:
  *         description: The server rejected the request because the provided credentials did not match any user in the database
+ *         content:
+ *           application/json:
+ *             schema:
+ *               oneOf:
+ *                 - type: object
+ *                   properties:
+ *                     error:
+ *                       type: string
+ *                       description: This error is returned when the user does not specify credentials that match any user in the database
+ *                       example: Provided credentials didn't resolve to any registered user
+ *                 - type: object
+ *                   properties:
+ *                     error:
+ *                       type: string
+ *                       description: This error is returned if the username or password field does match an user but the provided password doesn't
+ *                       example: Username or password invalid
  */
 
 api.post("/login", async function(request, response, next) {

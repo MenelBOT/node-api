@@ -14,7 +14,7 @@ try {
 		password = bcrypt.hashSync(password, 10);
 	}
 
-	const token = jwt.sign({ username: username, email: email, password: password }, PRIVATEKEY)
+	const token = jwt.sign({ username: username, email: email, password: password }, PRIVATEKEY);
 
 	// Testing validity
 
