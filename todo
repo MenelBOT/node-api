@@ -1,3 +1,3 @@
-Generally just create the authentication with JsonWebToken
+Generally just create the authentication with JsonWebToken ✓
 rewrite programming language validation to use newly introduced "simple-body-validator"
 Add documentation
