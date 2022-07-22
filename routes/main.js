@@ -428,16 +428,70 @@ router.put("/:languageID", async function(request, response) {
 
 });
 
+/**
+ * @openapi
+ * /programming-languages/{languageID}:
+ *   delete:
+ *     summary: This route deletes the specified programming language from the ranking (Authorization required)
+ *     tags: [Programming languages]
+ *     parameters:
+ *       - in: path
+ *         name: languageID
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *         description: The automatically generated ID of the programming language
+ *     responses:
+ *       200:
+ *         description: The language has been successfully deleted from the database
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: A generic http code 200 message
+ *                   default: ok
+ *       400:
+ *         description: The specified programming language ID is not of an acceptable type. language ID must be a number
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   default: Request affected no entry, make sure the language ID is correct and try again
+ *       404:
+ *         description: No record found with matching ID
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   default: There exists no entry with specified ID
+ */
 
 router.delete("/:languageID", async function(request, response, next) {
 
+	if (validateNumeric(request.params.languageID)) return response.status(400).json({ error: "Request affected no entry, make sure the language ID is correct and try again" });
+
 	try {
+
+		const someReturnIdk = await db.query(`SELECT count(*) FROM programming_languages WHERE id=${request.params.languageID}`);
+
+		// Since primary_key is unique, the return value will always be a boolean value.
+
+		if (!someReturnIdk[0]["count(*)"]) return response.status(404).json({ error: "There exists no entry with specified ID" });
 
 		const result = await languageranking.deleteOne(request.params.languageID);
 
 		if (result.message == "Programming language deleted successfully") return response.status(200).json({ message: "ok" });
 
-		else return response.status(400).json({ error: "Request affected no rows, make sure the language ID is correct and try again" });
+		else next(result.message);
 
 	} catch (error) {
 

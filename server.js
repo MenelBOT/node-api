@@ -169,6 +169,15 @@ api.use("/programming-languages", programmingLanguagesRouter);
  *         updated_at:
  *           type: Date
  *           description: The server date to the second of exactly when the language was last updated
+ *       example:
+ *         id: 1
+ *         name: JavaScript
+ *         released_year: 1995
+ *         githut_rank: 1
+ *         pypl_rank: 3
+ *         tiobe_rank: 7
+ *         created_at: 2022-07-07 19:35:04
+ *         updated_at: 2022-07-13 17:29:45
  */
 
 /**
@@ -191,7 +200,7 @@ api.use("/programming-languages", programmingLanguagesRouter);
  *          required: true
  *          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
  *    tags: [Users]
- *    summary: Creates a new user of the API
+ *    summary: Creates a new user of the API (Authorization via JWT and permissions field required)
  *    requestBody:
  *      required: true
  *      content:
@@ -385,6 +394,17 @@ api.post("/register", async function(request, response, next) {
  *                   type: string
  *                   description: The password field was ommitted in the request body
  *                   default: No password provided
+ *       404:
+ *         description: The server cannot find any user that matches the given username or email
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: This error is returned when the user does not specify credentials that match any user in the database
+ *                   example: Provided credentials didn't resolve to any registered user
  *       406:
  *         description: The server rejected the request despite correct syntax, because request body had more parameters than required
  *         content:
@@ -401,19 +421,12 @@ api.post("/register", async function(request, response, next) {
  *         content:
  *           application/json:
  *             schema:
- *               oneOf:
- *                 - type: object
- *                   properties:
- *                     error:
- *                       type: string
- *                       description: This error is returned when the user does not specify credentials that match any user in the database
- *                       example: Provided credentials didn't resolve to any registered user
- *                 - type: object
- *                   properties:
- *                     error:
- *                       type: string
- *                       description: This error is returned if the username or password field does match an user but the provided password doesn't
- *                       example: Username or password invalid
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: This error is returned if the username or password field does match an user but the provided password doesn't
+ *                   example: Username or password invalid
  */
 
 api.post("/login", async function(request, response, next) {
@@ -432,7 +445,7 @@ api.post("/login", async function(request, response, next) {
 
 			if (typeof request.body.password == "undefined") return response.status(400).json({ error: "No password provided" });
 			const user = await db.query("SELECT id, username, email, password FROM users WHERE username = ? LIMIT 1", [request.body.username]);
-			if (user.length == 0) return response.status(422).json({ error: "Provided credentials didn't resolve to any registered user" });
+			if (user.length == 0) return response.status(404).json({ error: "Provided credentials didn't resolve to any registered user" });
 
 			if (bcrypt.compareSync(request.body.password, user[0].password)) {
 				const token = jwt.sign({ username: user[0].username, email: user[0].email, password: user[0].password }, PRIVATEKEY, { expiresIn: "4h" });
@@ -451,7 +464,7 @@ api.post("/login", async function(request, response, next) {
 		} else {
 			if (typeof request.body.password == "undefined") return response.status(400).json({ error: "No password provided" });
 			const user = await db.query("SELECT id, username, email, password FROM users WHERE email = ? LIMIT 1", [request.body.email]);
-			if (user.length == 0) return response.status(422).json({ error: "Provided credentials didn't resolve to any registered user" });
+			if (user.length == 0) return response.status(404).json({ error: "Provided credentials didn't resolve to any registered user" });
 
 			if (bcrypt.compareSync(request.body.password, user[0].password)) {
 				const token = jwt.sign({ username: user[0].username, email: user[0].email, password: user[0].password }, PRIVATEKEY, { expiresIn: "4h" });
@@ -464,7 +477,7 @@ api.post("/login", async function(request, response, next) {
 
 				return response.status(200).json({ message: `Welcome back, ${user[0].username}!`, token: token, expiresIn: `This token will expire at ${new Date(Date.now() + (4 * 60 * 60 * 1000))}` });
 
-			} else return response.status(422).json({ error: "Provided credentials didn't resolve to any registered user" });
+			} else return response.status(404).json({ error: "Provided credentials didn't resolve to any registered user" });
 
 		}
 
