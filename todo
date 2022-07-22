@@ -1,3 +1,16 @@
-Generally just create the authentication with JsonWebToken
-rewrite programming language validation to use newly introduced "simple-body-validator"
-Add documentation
+Generally just create the authentication with JsonWebToken: ✓
+Add 404 response to routes: ⨉
+Add permission authentication to programming language related routes: ⨉
+Add documentation:
+  - User related:
+    - document POST /register: ✓
+    - document POST /login: ✓
+    - document user schema: ✓
+  - Programming language related:
+    - document GET /programming-languages: ✓
+    - document GET /programming-languages/{languageID}: ✓
+    - document POST /programming-languages/: ✓
+    - document PUT /programming-languages/{languageID}: ✓
+    - document DELETE /programming-languages/{languageID}: ✓
+    - document programming language schema: ✓
+Add automated tests and shit: ⨉
